@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transactions</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-light">
+  <div class="container mt-5">
+    <h2 class="text-center mb-4">Transactions</h2>
+    <a href="/user/dashboard/" class="btn btn-secondary mb-3">← Back to Dashboard</a>
+
+
+    <div class="card mb-4">
+      <div class="card-header">Add New Transaction</div>
+      <div class="card-body">
+        <form id="transactionForm">
+          <div class="mb-3">
+            <label for="amount" class="form-label">Amount</label>
+            <input type="number" id="amount" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label for="type" class="form-label">Type</label>
+            <select id="type" class="form-select">
+              <option value="given">Given</option>
+              <option value="taken">Taken</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="description" class="form-label">Description (optional)</label>
+            <input type="text" id="description" class="form-control"/>
+          </div>
+          <button type="submit" class="btn btn-success">Create</button>
+        </form>
+      </div>
+    </div>
+
+
+    <div class="card">
+      <div class="card-header">Transaction History</div>
+      <ul class="list-group list-group-flush" id="transactionList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "/user/login/";
+    }
+
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const partyId = urlParams.get("party");
+    if (!partyId) {
+      alert("Party not specified.");
+      window.location.href = "/user/dashboard/";
+    }
+
+    async function loadTransactions() {
+      const res = await fetch(`/parties/transaction/?party=${partyId}`, {
+        headers: { Authorization: `Token ${token}` }
+      });
+
+      if (!res.ok) {
+        alert("Error loading transactions.");
+        return;
+      }
+
+
+      const data = await res.json();
+      const list = document.getElementById("transactionList");
+      list.innerHTML = "";
+      data.forEach(txn => {
+        const dateTime = new Date(txn.timestamp);
+        const formattedTime = dateTime.toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+        const item = document.createElement("li");
+        item.className = "list-group-item d-flex justify-content-between align-items-center";
+        item.innerHTML = `
+          <div>
+            Rs.${txn.amount} (${txn.transaction_type}) on ${formattedTime}
+            <br><small>${txn.note || "No description"}</small>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="deleteTransaction(${txn.id})">Delete</button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    async function createTransaction(e) {
+      e.preventDefault();
+      const data = {
+        party: partyId,
+        amount: document.getElementById("amount").value,
+        transaction_type: document.getElementById("type").value,
+        note: document.getElementById("description").value
+      };
+
+      const res = await fetch(`/parties/transaction/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!res.ok) {
+        alert("Failed to create transaction.");
+        return;
+      }
+
+      document.getElementById("transactionForm").reset();
+      loadTransactions();
+    }
+
+    async function deleteTransaction(id) {
+      if (!confirm("Are you sure you want to delete this transaction?")) return;
+      await fetch(`/parties/transaction/${id}/`, {
+        method: "DELETE",
+        headers: { Authorization: `Token ${token}` }
+      });
+      loadTransactions();
+    }
+
+    window.onload = () => {
+      document.getElementById("transactionForm").addEventListener("submit", createTransaction);
+      loadTransactions();
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django specific
+*.log
+*.pot
+*.pyc
+db.sqlite3
+db.sqlite3-journal
+
+# Media and static files
+/media
+/staticfiles
+
+# Environment
+.env
+.env.*
+
+# VS Code settings
+.vscode/
+
+# PyCharm
+.idea/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Virtualenv
+venv/
+ENV/
+env/
+.venv/
+
+# Migrations (optional – keep if you don't want to track them initially)
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# pytest
+.pytest_cache/
+
+# Pipenv
+Pipfile.lock
+
+# Docker
+*.pid
+celerybeat-schedule
