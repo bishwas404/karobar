@@ -1,0 +1,30 @@
+name: docker-project
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docker-image
+    container_name: docker-container
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+
+  db:
+    image: postgres:16
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: my_user
+      POSTGRES_PASSWORD: my_password
+      POSTGRES_DB: my_database
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    ports:
+      - '5432:5432'
+
+volumes:
+  postgres_data:
